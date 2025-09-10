@@ -46,7 +46,7 @@ export class LoginComponent {
         },
         error: (err) => {
           this.loading.set(false);
-          this.error.set(err.message || 'Erreur de connexion');
+          this.error.set(err.message || 'Connection error');
         },
       });
     }
@@ -60,10 +60,10 @@ export class LoginComponent {
   getFieldError(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
     if (field?.errors) {
-      if (field.errors['required']) return 'Ce champ est requis';
-      if (field.errors['email']) return "Format d'email invalide";
+      if (field.errors['required']) return 'This field is required';
+      if (field.errors['email']) return 'Invalid email format';
       if (field.errors['minlength'])
-        return `Minimum ${field.errors['minlength'].requiredLength} caractères`;
+        return `Minimum ${field.errors['minlength'].requiredLength} characters`;
     }
     return '';
   }

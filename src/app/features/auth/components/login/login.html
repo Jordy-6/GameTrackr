@@ -1,15 +1,13 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
   <div class="max-w-md w-full space-y-8">
     <div>
-      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-        Connexion à votre compte
-      </h2>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Login to your account</h2>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
       <!-- Email -->
       <div>
-        <label for="email" class="block text-sm font-medium text-gray-700"> Adresse email </label>
+        <label for="email" class="block text-sm font-medium text-gray-700"> Email Address </label>
         <input
           id="email"
           type="email"
@@ -26,7 +24,7 @@
 
       <!-- Password -->
       <div>
-        <label for="password" class="block text-sm font-medium text-gray-700"> Mot de passe </label>
+        <label for="password" class="block text-sm font-medium text-gray-700"> Password </label>
         <input
           id="password"
           type="password"
@@ -52,9 +50,9 @@
             <span
               class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
             ></span>
-            Connexion en cours...
+            Logging in...
           } @else {
-            Se connecter
+            Log In
           }
         </button>
       </div>
