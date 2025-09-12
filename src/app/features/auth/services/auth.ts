@@ -37,6 +37,7 @@ export class AuthService {
 
     if (user && password === credentials.password) {
       this.currentUser.set(user);
+      localStorage.setItem('currentUser', JSON.stringify(user));
       return of(user).pipe(delay(500));
     } else {
       return throwError(() => new Error('Invalid email or password'));
@@ -63,6 +64,8 @@ export class AuthService {
 
     this.users.push(newUser);
     this.passwords[userData.email] = userData.password;
+    this.currentUser.set(newUser);
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
     return of(newUser).pipe(delay(500));
   }
 
