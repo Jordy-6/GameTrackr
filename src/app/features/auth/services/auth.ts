@@ -69,6 +69,32 @@ export class AuthService {
     return of(newUser).pipe(delay(500));
   }
 
+  public getAllUsers(): Observable<User[]> {
+    if (this.currentUser()?.role === 'admin') {
+      return of(this.users).pipe(delay(300));
+    }
+    return throwError(() => new Error('Unauthorized'));
+  }
+
+  public deleteUserAccount(userId: number): Observable<void> {
+    if (this.currentUser()?.id === userId || this.currentUser()?.role === 'admin') {
+      this.users = this.users.filter((u) => u.id !== userId);
+      return of(void 0).pipe(delay(300));
+    }
+    return throwError(() => new Error('Unauthorized'));
+  }
+
+  public updateUserProfile(userId: number, updatedData: Partial<User>): Observable<User> {
+    if (this.currentUser()?.id === userId || this.currentUser()?.role === 'admin') {
+      const userIndex = this.users.findIndex((u) => u.id === userId);
+      if (userIndex !== -1) {
+        this.users[userIndex] = { ...this.users[userIndex], ...updatedData };
+        return of(this.users[userIndex]).pipe(delay(300));
+      }
+    }
+    return throwError(() => new Error('Unauthorized'));
+  }
+
   public logout(): void {
     this.currentUser.set(null);
     localStorage.removeItem('currentUser');
