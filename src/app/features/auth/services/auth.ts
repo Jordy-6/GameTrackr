@@ -69,11 +69,23 @@ export class AuthService {
     return of(newUser).pipe(delay(500));
   }
 
+  public getCurrentUser(): User | null {
+    return this.currentUser();
+  }
+
   public getAllUsers(): Observable<User[]> {
     if (this.currentUser()?.role === 'admin') {
       return of(this.users).pipe(delay(300));
     }
     return throwError(() => new Error('Unauthorized'));
+  }
+
+  public getUserById(userId: number): Observable<User> {
+    const user = this.users.find((u) => u.id === userId);
+    if (user) {
+      return of(user).pipe(delay(300));
+    }
+    return throwError(() => new Error('User not found'));
   }
 
   public deleteUserAccount(userId: number): Observable<void> {
