@@ -1,0 +1,190 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Game's Library</h1>
+      <p class="mt-2 text-gray-600">
+        Discover our collection of games and customize your experience
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span class="ml-3 text-lg text-gray-600">Loading games...</span>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-red-800">{{ error() }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Success Message -->
+    @if (successMessage()) {
+      <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-green-800">{{ successMessage() }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Games Grid -->
+    @if (games().length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        @for (game of games(); track game.id) {
+          <div
+            class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+          >
+            <!-- Game Cover -->
+            <div class="aspect-w-3 aspect-h-4 bg-gray-200">
+              <img
+                [src]="game.coverImageUrl"
+                [alt]="game.title"
+                class="w-full h-48 object-cover"
+                (error)="onImageError($event)"
+              />
+            </div>
+
+            <!-- Game Info -->
+            <div class="p-4">
+              <!-- Title -->
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                {{ game.title }}
+              </h3>
+
+              <!-- Genre & Platform -->
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  {{ game.genre }}
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                >
+                  {{ game.platform }}
+                </span>
+              </div>
+
+              <!-- Release Date -->
+              <p class="text-sm text-gray-600 mb-3">Sortie: {{ formatDate(game.releaseDate) }}</p>
+
+              <!-- User Status & Rating -->
+              <div class="space-y-3">
+                <!-- Status Selection -->
+                <div>
+                  <label
+                    [for]="'status-' + game.id"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Status:</label
+                  >
+                  <select
+                    [id]="'status-' + game.id"
+                    [value]="game.status"
+                    (change)="updateGameStatus(game.id, $event)"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="none">Not added</option>
+                    <option value="wishlist">Wishlist</option>
+                    <option value="playing">Playing</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+
+                <!-- Rating -->
+                <div>
+                  <label
+                    [for]="'rating-' + game.id"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Note:
+                    <span class="font-normal text-gray-600">
+                      {{ game.rating > 0 ? game.rating + '/10' : 'Non noté' }}
+                    </span>
+                  </label>
+                  <input
+                    [id]="'rating-' + game.id"
+                    type="range"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    [value]="game.rating"
+                    (input)="updateGameRating(game.id, $event)"
+                    class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0</span>
+                    <span>5</span>
+                    <span>10</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Description (expandable) -->
+              <div class="mt-3 pt-3 border-t border-gray-100">
+                <button
+                  (click)="toggleDescription(game.id)"
+                  class="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+                >
+                  {{ expandedDescriptions().has(game.id) ? 'Mask' : 'Show more' }}
+                </button>
+                @if (expandedDescriptions().has(game.id)) {
+                  <p class="text-sm text-gray-600 mt-2">{{ game.description }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (games().length === 0 && !loading()) {
+      <div class="text-center py-12">
+        <svg
+          class="mx-auto h-12 w-12 text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          ></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No game available</h3>
+        <p class="mt-1 text-sm text-gray-500">The game library is empty at the moment.</p>
+      </div>
+    }
+  </div>
+</div>
