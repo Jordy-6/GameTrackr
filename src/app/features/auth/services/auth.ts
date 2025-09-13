@@ -15,6 +15,7 @@ export class AuthService {
     if (localStorage.getItem('currentUser')) {
       this.currentUser.set(JSON.parse(localStorage.getItem('currentUser')!));
     }
+    this.loadUsersFromLocalStorage();
   }
 
   private users: User[] = [
@@ -74,6 +75,7 @@ export class AuthService {
     this.passwords[userData.email] = userData.password;
     this.currentUser.set(newUser);
     localStorage.setItem('currentUser', JSON.stringify(newUser));
+    this.saveUsersToLocalStorage();
     return of(newUser).pipe(delay(500));
   }
 
@@ -105,6 +107,7 @@ export class AuthService {
   public deleteUserAccount(userId: number): Observable<void> {
     if (this.currentUser()?.id === userId || this.currentUser()?.role === 'admin') {
       this.users = this.users.filter((u) => u.id !== userId);
+      this.saveUsersToLocalStorage();
       return of(void 0).pipe(delay(300));
     }
     return throwError(() => new Error('Unauthorized'));
@@ -120,10 +123,26 @@ export class AuthService {
         this.users[userIndex] = { ...this.users[userIndex], ...updatedData };
         localStorage.setItem('currentUser', JSON.stringify(this.users[userIndex]));
         this.currentUser.set(this.users[userIndex]);
+        this.saveUsersToLocalStorage();
         return of(this.users[userIndex]).pipe(delay(300));
       }
     }
+
     return throwError(() => new Error('Unauthorized'));
+  }
+
+  private saveUsersToLocalStorage(): void {
+    localStorage.setItem('all_users', JSON.stringify(this.users));
+    localStorage.setItem('all_passwords', JSON.stringify(this.passwords));
+  }
+
+  private loadUsersFromLocalStorage(): void {
+    const users = localStorage.getItem('all_users');
+    const passwords = localStorage.getItem('all_passwords');
+    if (users && passwords) {
+      this.users = JSON.parse(users);
+      this.passwords = JSON.parse(passwords);
+    }
   }
 
   public logout(): void {
