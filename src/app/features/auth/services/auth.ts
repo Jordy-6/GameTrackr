@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import { LoginRequest, RegisterRequest, User } from '../model/user.model';
+import { LoginRequest, RegisterRequest } from '../model/auth.model';
+import { UpdateUserProfileRequest, User } from '../../user/model/user.model';
 import { delay, Observable, of, throwError } from 'rxjs';
 
 @Injectable({
@@ -8,6 +9,13 @@ import { delay, Observable, of, throwError } from 'rxjs';
 export class AuthService {
   private currentUser = signal<User | null>(null);
   public user$ = this.currentUser.asReadonly();
+
+  constructor() {
+    // Initialiser le signal avec les données du localStorage si elles existent
+    if (localStorage.getItem('currentUser')) {
+      this.currentUser.set(JSON.parse(localStorage.getItem('currentUser')!));
+    }
+  }
 
   private users: User[] = [
     {
@@ -73,8 +81,14 @@ export class AuthService {
     return this.currentUser();
   }
 
+  // Nouvelle méthode pour accéder au signal directement
+  public getCurrentUserSignal() {
+    return this.currentUser;
+  }
+
   public getAllUsers(): Observable<User[]> {
     if (this.currentUser()?.role === 'admin') {
+      localStorage.setItem('AllUsers', JSON.stringify(this.users));
       return of(this.users).pipe(delay(300));
     }
     return throwError(() => new Error('Unauthorized'));
@@ -96,11 +110,16 @@ export class AuthService {
     return throwError(() => new Error('Unauthorized'));
   }
 
-  public updateUserProfile(userId: number, updatedData: Partial<User>): Observable<User> {
+  public updateUserProfile(
+    userId: number,
+    updatedData: UpdateUserProfileRequest,
+  ): Observable<User> {
     if (this.currentUser()?.id === userId || this.currentUser()?.role === 'admin') {
       const userIndex = this.users.findIndex((u) => u.id === userId);
       if (userIndex !== -1) {
         this.users[userIndex] = { ...this.users[userIndex], ...updatedData };
+        localStorage.setItem('currentUser', JSON.stringify(this.users[userIndex]));
+        this.currentUser.set(this.users[userIndex]);
         return of(this.users[userIndex]).pipe(delay(300));
       }
     }
