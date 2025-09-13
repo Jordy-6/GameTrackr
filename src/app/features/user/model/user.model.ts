@@ -5,3 +5,9 @@ export interface User {
   role: 'user' | 'admin';
   createdAt: Date;
 }
+
+export interface UpdateUserProfileRequest {
+  name?: string;
+  email?: string;
+  password?: string;
+}
