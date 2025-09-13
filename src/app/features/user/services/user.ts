@@ -1,9 +1,12 @@
-import { inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { AuthService } from '../../auth/services/auth';
 import { throwError } from 'rxjs';
 import { UpdateUserProfileRequest } from '../model/user.model';
 
-export class Userservice {
+@Injectable({
+  providedIn: 'root',
+})
+export class UserService {
   private authService = inject(AuthService);
 
   public getUserProfile() {
@@ -25,7 +28,7 @@ export class Userservice {
     return throwError(() => new Error('User not found'));
   }
 
-  public logout() {
+  public logout(): void {
     this.authService.logout();
   }
 }
