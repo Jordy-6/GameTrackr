@@ -95,7 +95,7 @@
               </div>
 
               <!-- Release Date -->
-              <p class="text-sm text-gray-600 mb-3">Sortie: {{ formatDate(game.releaseDate) }}</p>
+              <p class="text-sm text-gray-600 mb-3">Released: {{ formatDate(game.releaseDate) }}</p>
 
               <!-- User Status & Rating -->
               <div class="space-y-3">
@@ -125,9 +125,9 @@
                     [for]="'rating-' + game.id"
                     class="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Note:
+                    Rating:
                     <span class="font-normal text-gray-600">
-                      {{ game.rating > 0 ? game.rating + '/10' : 'Non noté' }}
+                      {{ game.rating > 0 ? game.rating + '/10' : 'Not rated' }}
                     </span>
                   </label>
                   <input
@@ -154,7 +154,7 @@
                   (click)="toggleDescription(game.id)"
                   class="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
                 >
-                  {{ expandedDescriptions().has(game.id) ? 'Mask' : 'Show more' }}
+                  {{ expandedDescriptions().has(game.id) ? 'Hide' : 'Show more' }}
                 </button>
                 @if (expandedDescriptions().has(game.id)) {
                   <p class="text-sm text-gray-600 mt-2">{{ game.description }}</p>

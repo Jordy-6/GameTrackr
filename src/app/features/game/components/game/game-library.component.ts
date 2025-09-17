@@ -139,6 +139,6 @@ export class GameLibraryComponent implements OnInit {
    */
   private showSuccessMessage(message: string) {
     this.successMessage.set(message);
-    setTimeout(() => this.successMessage.set(''), 3000);
+    setTimeout(() => this.successMessage.set(''), 6000);
   }
 }
