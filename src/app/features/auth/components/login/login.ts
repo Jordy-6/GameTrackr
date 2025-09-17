@@ -40,7 +40,7 @@ export class LoginComponent {
       this.authService.login(this.loginForm.value).subscribe({
         next: (user) => {
           this.loading.set(false);
-          this.router.navigate(['/test']);
+          this.router.navigate(['/']);
           console.log('Logged in user:', user);
           // this.authService.setCurrentUser(user);
         },
