@@ -2,31 +2,33 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Ma Bibliothèque Personnelle</h1>
-      <p class="mt-2 text-gray-600">
-        Tous les jeux que vous avez notés ou ajoutés à votre collection
-      </p>
+      <h1 class="text-3xl font-bold text-gray-900">My Personal Library</h1>
+      <p class="mt-2 text-gray-600">All games you've rated or added to your collection</p>
 
       <!-- Stats -->
       @if (stats()) {
-        <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="mt-6 grid grid-cols-2 md:grid-cols-5 gap-4">
           <div class="bg-white rounded-lg p-4 shadow-sm border">
             <div class="text-2xl font-bold text-blue-600">{{ stats()?.total || 0 }}</div>
-            <div class="text-sm text-gray-600">Jeux dans ma biblio</div>
+            <div class="text-sm text-gray-600">Games in library</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
             <div class="text-2xl font-bold text-green-600">{{ stats()?.completed || 0 }}</div>
-            <div class="text-sm text-gray-600">Terminés</div>
+            <div class="text-sm text-gray-600">Completed</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
             <div class="text-2xl font-bold text-orange-600">{{ stats()?.playing || 0 }}</div>
-            <div class="text-sm text-gray-600">En cours</div>
+            <div class="text-sm text-gray-600">Playing</div>
+          </div>
+          <div class="bg-white rounded-lg p-4 shadow-sm border">
+            <div class="text-2xl font-bold text-pink-600">{{ stats()?.wishlist || 0 }}</div>
+            <div class="text-sm text-gray-600">Wishlist</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
             <div class="text-2xl font-bold text-purple-600">
-              {{ stats()?.averageRating.toFixed(1) || '0.0' }}
+              {{ (stats()?.averageRating || 0).toFixed(1) }}
             </div>
-            <div class="text-sm text-gray-600">Note moyenne</div>
+            <div class="text-sm text-gray-600">Average rating</div>
           </div>
         </div>
       }
@@ -43,7 +45,7 @@
             : 'bg-white text-gray-700 hover:bg-gray-100')
         "
       >
-        Tous ({{ personalGames().length }})
+        All ({{ personalGames().length }})
       </button>
       <button
         (click)="filterByStatus('wishlist')"
@@ -54,7 +56,7 @@
             : 'bg-white text-gray-700 hover:bg-gray-100')
         "
       >
-        Liste de souhaits ({{ getGamesByStatus('wishlist').length }})
+        Wishlist ({{ wishlistGames().length }})
       </button>
       <button
         (click)="filterByStatus('playing')"
@@ -65,7 +67,7 @@
             : 'bg-white text-gray-700 hover:bg-gray-100')
         "
       >
-        En cours ({{ getGamesByStatus('playing').length }})
+        Playing ({{ playingGames().length }})
       </button>
       <button
         (click)="filterByStatus('completed')"
@@ -76,7 +78,7 @@
             : 'bg-white text-gray-700 hover:bg-gray-100')
         "
       >
-        Terminés ({{ getGamesByStatus('completed').length }})
+        Completed ({{ completedGames().length }}))
       </button>
     </div>
 
@@ -84,7 +86,7 @@
     @if (loading()) {
       <div class="flex justify-center items-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <span class="ml-3 text-lg text-gray-600">Chargement de votre bibliothèque...</span>
+        <span class="ml-3 text-lg text-gray-600">Loading your library...</span>
       </div>
     }
 
@@ -164,7 +166,9 @@
                         d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
                       ></path>
                     </svg>
-                    <span class="text-sm font-medium text-gray-900">{{ game.rating }}/10</span>
+                    <span class="text-sm font-medium text-gray-900"
+                      >{{ getDisplayRating(game.id) }}/10</span
+                    >
                   </div>
                 }
               </div>
@@ -192,7 +196,7 @@
                   <label
                     [for]="'status-' + game.id"
                     class="block text-sm font-medium text-gray-700 mb-1"
-                    >Statut:</label
+                    >Status:</label
                   >
                   <select
                     [id]="'status-' + game.id"
@@ -200,10 +204,10 @@
                     (change)="updateGameStatus(game.id, $event)"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="wishlist">Liste de souhaits</option>
-                    <option value="playing">En cours</option>
-                    <option value="completed">Terminé</option>
-                    <option value="none">Retirer de ma bibliothèque</option>
+                    <option value="wishlist">Wishlist</option>
+                    <option value="playing">Playing</option>
+                    <option value="completed">Completed</option>
+                    <option value="none">Remove from library</option>
                   </select>
                 </div>
 
@@ -213,9 +217,13 @@
                     [for]="'rating-' + game.id"
                     class="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Note:
+                    Rating:
                     <span class="font-normal text-gray-600">
-                      {{ game.rating > 0 ? game.rating + '/10' : 'Non noté' }}
+                      {{
+                        getDisplayRating(game.id) > 0
+                          ? getDisplayRating(game.id) + '/10'
+                          : 'Not rated'
+                      }}
                     </span>
                   </label>
                   <input
@@ -224,8 +232,9 @@
                     min="0"
                     max="10"
                     step="0.5"
-                    [value]="game.rating"
-                    (input)="updateGameRating(game.id, $event)"
+                    [value]="getDisplayRating(game.id)"
+                    (input)="onRatingSliderMove(game.id, $event)"
+                    (change)="updateGameRating(game.id, $event)"
                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                   />
                   <div class="flex justify-between text-xs text-gray-500 mt-1">
@@ -236,13 +245,29 @@
                 </div>
               </div>
 
+              <!-- Date de dernière mise à jour -->
+              @if (game.updatedAt) {
+                <div class="mt-3 pt-2 border-t border-gray-100">
+                  <p class="text-xs text-gray-500 flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    Last updated: {{ game.updatedAt | date: 'short' }}
+                  </p>
+                </div>
+              }
+
               <!-- Description (expandable) -->
               <div class="mt-3 pt-3 border-t border-gray-100">
                 <button
                   (click)="toggleDescription(game.id)"
                   class="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
                 >
-                  {{ expandedDescriptions().has(game.id) ? 'Masquer' : 'Voir plus' }}
+                  {{ expandedDescriptions().has(game.id) ? 'Hide' : 'Show more' }}
                 </button>
                 @if (expandedDescriptions().has(game.id)) {
                   <p class="text-sm text-gray-600 mt-2">{{ game.description }}</p>
@@ -272,17 +297,16 @@
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900">
           @if (selectedFilter() === 'all') {
-            Votre bibliothèque est vide
+            Your library is empty
           } @else {
-            Aucun jeu avec le statut "{{ getStatusLabel(selectedFilter()) }}"
+            No games with status "{{ getStatusLabel(selectedFilter()) }}"
           }
         </h3>
         <p class="mt-1 text-sm text-gray-500">
           @if (selectedFilter() === 'all') {
-            Commencez par noter des jeux ou les ajouter à votre collection depuis la bibliothèque
-            principale.
+            Start by rating games or adding them to your collection from the main library.
           } @else {
-            Changez le statut de vos jeux pour les voir apparaître ici.
+            Change your games' status to see them appear here.
           }
         </p>
         @if (selectedFilter() === 'all') {
@@ -291,7 +315,7 @@
               (click)="goToMainLibrary()"
               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Découvrir les jeux
+              Discover Games
             </button>
           </div>
         }

@@ -1,23 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
-
-interface UserStats {
-  total: number;
-  completed: number;
-  playing: number;
-  wishlist: number;
-  rated: number;
-  averageRating: number;
-}
 
 @Component({
   selector: 'app-personal-library',
   standalone: true,
   imports: [CommonModule],
-  template: './personal-library.html',
+  templateUrl: './personal-library.html',
 })
 export class PersonalLibraryComponent implements OnInit {
   private gameService = inject(GameService);
@@ -27,15 +18,69 @@ export class PersonalLibraryComponent implements OnInit {
   personalGames = signal<Game[]>([]);
   filteredGames = signal<Game[]>([]);
   selectedFilter = signal<string>('all');
-  stats = signal<UserStats | null>(null);
   loading = signal(false);
   error = signal<string>('');
   successMessage = signal<string>('');
   expandedDescriptions = signal<Set<number>>(new Set());
+  // Signal pour les notes temporaires (pendant le déplacement du slider)
+  tempRatings = signal<Map<number, number>>(new Map());
+
+  // Computed signals pour les statistiques
+  public completedGames = computed(() =>
+    this.personalGames().filter((game) => game.status === 'completed'),
+  );
+
+  public playingGames = computed(() =>
+    this.personalGames().filter((game) => game.status === 'playing'),
+  );
+
+  public wishlistGames = computed(() =>
+    this.personalGames().filter((game) => game.status === 'wishlist'),
+  );
+
+  public ratedGames = computed(() => this.personalGames().filter((game) => game.rating > 0));
+
+  public stats = computed(() => ({
+    total: this.personalGames().length,
+    completed: this.completedGames().length,
+    playing: this.playingGames().length,
+    wishlist: this.wishlistGames().length,
+    rated: this.ratedGames().length,
+    averageRating:
+      this.ratedGames().length > 0
+        ? this.ratedGames().reduce((sum, game) => sum + game.rating, 0) / this.ratedGames().length
+        : 0,
+  }));
 
   ngOnInit() {
     this.loadPersonalLibrary();
-    this.loadStats();
+  }
+
+  /**
+   * Obtenir la note à afficher (temporaire ou réelle)
+   */
+  getDisplayRating(gameId: number): number {
+    const tempRating = this.tempRatings().get(gameId);
+    if (tempRating !== undefined) {
+      return tempRating;
+    }
+    const game = this.personalGames().find((g) => g.id === gameId);
+    return game ? game.rating : 0;
+  }
+
+  /**
+   * Gérer le déplacement du slider (mise à jour temporaire)
+   */
+  onRatingSliderMove(gameId: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const rating = parseFloat(input.value);
+
+    // Mettre à jour la note temporaire
+    this.tempRatings.update((map) => {
+      const newMap = new Map(map);
+      newMap.set(gameId, rating);
+      return newMap;
+    });
   }
 
   /**
@@ -61,36 +106,6 @@ export class PersonalLibraryComponent implements OnInit {
   }
 
   /**
-   * Charger les statistiques
-   */
-  loadStats() {
-    this.gameService.getUserStats().subscribe({
-      next: () => {
-        // Recalculer les stats basées sur les jeux avec interaction
-        const interactedGames = this.personalGames();
-        const customStats = {
-          total: interactedGames.length,
-          completed: interactedGames.filter((g) => g.status === 'completed').length,
-          playing: interactedGames.filter((g) => g.status === 'playing').length,
-          wishlist: interactedGames.filter((g) => g.status === 'wishlist').length,
-          rated: interactedGames.filter((g) => g.rating > 0).length,
-          averageRating:
-            interactedGames.filter((g) => g.rating > 0).length > 0
-              ? interactedGames
-                  .filter((g) => g.rating > 0)
-                  .reduce((sum, game) => sum + game.rating, 0) /
-                interactedGames.filter((g) => g.rating > 0).length
-              : 0,
-        };
-        this.stats.set(customStats);
-      },
-      error: (error) => {
-        console.error('Error while loading stats:', error);
-      },
-    });
-  }
-
-  /**
    * Filtrer par statut
    */
   filterByStatus(status: string) {
@@ -110,13 +125,6 @@ export class PersonalLibraryComponent implements OnInit {
     } else {
       this.filteredGames.set(games.filter((game) => game.status === filter));
     }
-  }
-
-  /**
-   * Obtenir les jeux par statut (pour compter)
-   */
-  getGamesByStatus(status: string): Game[] {
-    return this.personalGames().filter((game) => game.status === status);
   }
 
   /**
@@ -148,7 +156,6 @@ export class PersonalLibraryComponent implements OnInit {
           this.showSuccessMessage('Status updated successfully!');
         }
         this.applyFilter();
-        this.loadStats();
       },
       error: (error) => {
         this.error.set(error.message || 'Error while updating status');
@@ -173,14 +180,26 @@ export class PersonalLibraryComponent implements OnInit {
 
     this.gameService.updateUserGameData(updateData, gameId).subscribe({
       next: () => {
+        // Mettre à jour localement
         this.personalGames.update((games) =>
           games.map((game) => (game.id === gameId ? { ...game, rating } : game)),
         );
-        this.showSuccessMessage(`Rating updated: ${rating}/10`);
-        this.loadStats();
+        // Nettoyer la note temporaire
+        this.tempRatings.update((map) => {
+          const newMap = new Map(map);
+          newMap.delete(gameId);
+          return newMap;
+        });
+        this.showSuccessMessage(`Note mise à jour: ${rating}/10`);
       },
       error: (error) => {
-        this.error.set(error.message || 'Error while updating rating');
+        this.error.set(error.message || 'Erreur lors de la mise à jour de la note');
+        // En cas d'erreur, nettoyer aussi la note temporaire
+        this.tempRatings.update((map) => {
+          const newMap = new Map(map);
+          newMap.delete(gameId);
+          return newMap;
+        });
       },
     });
   }
