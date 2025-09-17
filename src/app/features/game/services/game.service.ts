@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { delay } from 'rxjs/operators';
 import { Game, UpdateUserGameData, UserGameData } from '../model/game.model';
 import { AuthService } from '../../auth/services/auth';
 
@@ -77,19 +77,74 @@ export class GameService {
   ];
 
   // Données personnalisées par utilisateur (stockées par userId puis gameId)
-  private userGameData = signal<UserGameData[]>([
-    // Exemples de données pour différents utilisateurs
-    { userId: 1, gameId: 1, rating: 9.5, status: 'completed', updatedAt: new Date('2023-01-15') },
-    { userId: 1, gameId: 2, rating: 7.0, status: 'playing', updatedAt: new Date('2023-02-01') },
-    { userId: 2, gameId: 1, rating: 8.0, status: 'wishlist', updatedAt: new Date('2023-01-20') },
-    { userId: 2, gameId: 3, rating: 9.0, status: 'completed', updatedAt: new Date('2023-03-01') },
-  ]);
+  private userGameData = signal<UserGameData[]>([]);
+
+  constructor() {
+    this.loadUserGameDataFromStorage();
+  }
 
   /**
-   * Obtenir tous les jeux avec les données personnalisées de l'utilisateur connecté
+   * Charger les données utilisateur depuis localStorage
    */
-  getAllGames(): Observable<Game[]> {
-    return of(this.gameLibrary).pipe(delay(300));
+  private loadUserGameDataFromStorage(): void {
+    try {
+      const savedData = localStorage.getItem('userGameData');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        // Convertir les dates string en objets Date
+        const dataWithDates = parsedData.map((item: UserGameData) => ({
+          ...item,
+          updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+        }));
+        this.userGameData.set(dataWithDates);
+      } else {
+        // Données d'exemple si aucune donnée sauvegardée
+        this.userGameData.set([
+          {
+            userId: 1,
+            gameId: 1,
+            rating: 9.5,
+            status: 'completed',
+            updatedAt: new Date('2023-01-15'),
+          },
+          {
+            userId: 1,
+            gameId: 2,
+            rating: 7.0,
+            status: 'playing',
+            updatedAt: new Date('2023-02-01'),
+          },
+          {
+            userId: 2,
+            gameId: 1,
+            rating: 8.0,
+            status: 'wishlist',
+            updatedAt: new Date('2023-01-20'),
+          },
+          {
+            userId: 2,
+            gameId: 3,
+            rating: 9.0,
+            status: 'completed',
+            updatedAt: new Date('2023-03-01'),
+          },
+        ]);
+        this.saveUserGameDataToStorage();
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données depuis localStorage:', error);
+    }
+  }
+
+  /**
+   * Sauvegarder les données utilisateur dans localStorage
+   */
+  private saveUserGameDataToStorage(): void {
+    try {
+      localStorage.setItem('userGameData', JSON.stringify(this.userGameData()));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde dans localStorage:', error);
+    }
   }
 
   getAllPersonalGames(): Observable<Game[]> {
@@ -112,144 +167,51 @@ export class GameService {
     return of(gamesWithUserData).pipe(delay(300));
   }
 
-  addToLibrary(game: UserGameData): Observable<void> {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return throwError(() => new Error('User must be logged in'));
-    }
-
-    this.userGameData.update((current) => [
-      ...current,
-      {
-        userId: currentUser.id,
-        gameId: game.gameId,
-        rating: game.rating,
-        status: game.status,
-        updatedAt: new Date(),
-      },
-    ]);
-
-    return of(void 0).pipe(delay(200));
-  }
-
-  deleteFromLibrary(gameId: number): Observable<void> {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return throwError(() => new Error('User must be logged in'));
-    }
-
-    this.userGameData.update((current) =>
-      current.filter((data) => !(data.userId === currentUser.id && data.gameId === gameId)),
-    );
-
-    return of(void 0).pipe(delay(200));
-  }
-
-  /**
-   * Obtenir un jeu par son ID avec les données personnalisées de l'utilisateur
-   */
-  getGameById(id: number): Observable<Game> {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return throwError(() => new Error('User must be logged in'));
-    }
-
-    const game = this.gameLibrary.find((g) => g.id === id);
-    if (game) {
-      return of(game);
-    }
-    return throwError(() => new Error(`Game with ID ${id} not found`));
-  }
-
   updateUserGameData(updatedData: UpdateUserGameData, gameId: number): Observable<void> {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
       return throwError(() => new Error('User must be logged in'));
     }
 
-    const existingData = this.userGameData().find(
-      (data) => data.userId === currentUser.id && data.gameId === gameId,
-    );
-    if (existingData) {
-      // Mettre à jour les données existantes
+    // Si le statut est "none", supprimer le jeu de la bibliothèque
+    if (updatedData.status === 'none') {
       this.userGameData.update((current) =>
-        current.map((data) =>
-          data.userId === currentUser.id && data.gameId === gameId
-            ? { ...data, ...updatedData, updatedAt: new Date() }
-            : data,
+        current.filter(
+          (data: UserGameData) => !(data.userId === currentUser.id && data.gameId === gameId),
         ),
       );
     } else {
-      // Ajouter de nouvelles données
-      this.userGameData.update((current) => [
-        ...current,
-        {
-          userId: currentUser.id,
-          gameId: gameId,
-          rating: updatedData.rating ?? 0,
-          status: updatedData.status ?? 'none',
-          updatedAt: new Date(),
-        },
-      ]);
+      const existingData = this.userGameData().find(
+        (data: UserGameData) => data.userId === currentUser.id && data.gameId === gameId,
+      );
+
+      if (existingData) {
+        // Mettre à jour les données existantes
+        this.userGameData.update((current) =>
+          current.map((data: UserGameData) =>
+            data.userId === currentUser.id && data.gameId === gameId
+              ? { ...data, ...updatedData, updatedAt: new Date() }
+              : data,
+          ),
+        );
+      } else {
+        // Ajouter de nouvelles données
+        this.userGameData.update((current) => [
+          ...current,
+          {
+            userId: currentUser.id,
+            gameId: gameId,
+            rating: updatedData.rating ?? 0,
+            status: updatedData.status ?? 'none',
+            updatedAt: new Date(),
+          },
+        ]);
+      }
     }
+
+    // Sauvegarder dans localStorage
+    this.saveUserGameDataToStorage();
 
     return of(void 0).pipe(delay(200));
-  }
-
-  /**
-   * Obtenir le signal des données utilisateur (pour la réactivité)
-   */
-  getUserGameDataSignal() {
-    return this.userGameData.asReadonly();
-  }
-
-  /**
-   * Obtenir les statistiques de l'utilisateur
-   */
-  getUserStats(): Observable<{
-    total: number;
-    rated: number;
-    completed: number;
-    playing: number;
-    wishlist: number;
-    none: number;
-    averageRating: number;
-  }> {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return throwError(() => new Error('User must be logged in'));
-    }
-
-    const userGames = this.userGameData().filter((data) => data.userId === currentUser.id);
-    const ratedGames = userGames.filter((g) => g.rating > 0);
-
-    const stats = {
-      total: this.gameLibrary.length,
-      rated: ratedGames.length,
-      completed: userGames.filter((g) => g.status === 'completed').length,
-      playing: userGames.filter((g) => g.status === 'playing').length,
-      wishlist: userGames.filter((g) => g.status === 'wishlist').length,
-      none: this.gameLibrary.length - userGames.length,
-      averageRating:
-        ratedGames.length > 0
-          ? ratedGames.reduce((sum, game) => sum + game.rating, 0) / ratedGames.length
-          : 0,
-    };
-
-    return of(stats).pipe(delay(200));
-  }
-
-  /**
-   * Filtrer les jeux par statut
-   */
-  getGamesByStatus(status: 'completed' | 'playing' | 'wishlist' | 'none'): Observable<Game[]> {
-    const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return throwError(() => new Error('User must be logged in'));
-    }
-
-    return this.getAllPersonalGames().pipe(
-      map((games) => games.filter((game) => game.status === status)),
-    );
   }
 }
