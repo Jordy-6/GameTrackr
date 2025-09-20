@@ -3,6 +3,7 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
+import { AuthService } from '../../../auth/services/auth';
 
 @Component({
   selector: 'app-personal-library',
@@ -12,6 +13,7 @@ import { Game, UpdateUserGameData } from '../../model/game.model';
 })
 export class PersonalLibraryComponent implements OnInit {
   private gameService = inject(GameService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
   // Signals
@@ -53,7 +55,20 @@ export class PersonalLibraryComponent implements OnInit {
   }));
 
   ngOnInit() {
+    // Vérifier si l'utilisateur est connecté avant de charger la bibliothèque
+    if (!this.isUserLoggedIn()) {
+      this.error.set('You must be logged in to view your personal library. Please log in first.');
+      this.loading.set(false);
+      return;
+    }
     this.loadPersonalLibrary();
+  }
+
+  /**
+   * Vérifier si l'utilisateur est connecté
+   */
+  isUserLoggedIn(): boolean {
+    return this.authService.getCurrentUser() !== null;
   }
 
   /**
@@ -264,6 +279,13 @@ export class PersonalLibraryComponent implements OnInit {
    */
   goToMainLibrary() {
     this.router.navigate(['/games']);
+  }
+
+  /**
+   * Aller à la page de connexion
+   */
+  goToLogin() {
+    this.router.navigate(['/auth/login']);
   }
 
   /**

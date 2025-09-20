@@ -149,8 +149,16 @@ export class GameService {
 
   getAllPersonalGames(): Observable<Game[]> {
     const currentUser = this.authService.getCurrentUser();
+
+    // Si l'utilisateur n'est pas connecté, retourner les jeux sans données personnalisées
     if (!currentUser) {
-      return throwError(() => new Error('User must be logged in'));
+      const gamesWithoutUserData = this.gameLibrary.map((game) => ({
+        ...game,
+        rating: 0,
+        status: 'none' as const,
+        updatedAt: undefined,
+      }));
+      return of(gamesWithoutUserData).pipe(delay(300));
     }
 
     const userGames = this.userGameData().filter((data) => data.userId === currentUser.id);

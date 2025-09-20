@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
+import { AuthService } from '../../../auth/services/auth';
 
 @Component({
   selector: 'app-game-library',
@@ -11,6 +12,7 @@ import { Game, UpdateUserGameData } from '../../model/game.model';
 })
 export class GameLibraryComponent implements OnInit {
   private gameService = inject(GameService);
+  private authService = inject(AuthService);
 
   // Signals
   games = signal<Game[]>([]);
@@ -43,9 +45,25 @@ export class GameLibraryComponent implements OnInit {
   }
 
   /**
+   * Vérifier si l'utilisateur est connecté
+   */
+  isUserLoggedIn(): boolean {
+    return this.authService.getCurrentUser() !== null;
+  }
+
+  /**
    * Mettre à jour le statut d'un jeu
    */
   updateGameStatus(gameId: number, event: Event) {
+    // Vérifier si l'utilisateur est connecté
+    if (!this.isUserLoggedIn()) {
+      this.error.set('You must be logged in to update game status. Please log in first.');
+      // Remettre la valeur par défaut
+      const select = event.target as HTMLSelectElement;
+      select.value = 'none';
+      return;
+    }
+
     const select = event.target as HTMLSelectElement;
     const status = select.value as 'none' | 'wishlist' | 'playing' | 'completed';
 
@@ -63,10 +81,10 @@ export class GameLibraryComponent implements OnInit {
         this.games.update((games) =>
           games.map((game) => (game.id === gameId ? { ...game, status } : game)),
         );
-        this.showSuccessMessage('Statut mis à jour avec succès !');
+        this.showSuccessMessage('Status updated successfully!');
       },
       error: (error) => {
-        this.error.set(error.message || 'Erreur lors de la mise à jour du statut');
+        this.error.set(error.message || 'Error while updating status');
       },
     });
   }
@@ -75,6 +93,15 @@ export class GameLibraryComponent implements OnInit {
    * Mettre à jour la note d'un jeu
    */
   updateGameRating(gameId: number, event: Event) {
+    // Vérifier si l'utilisateur est connecté
+    if (!this.isUserLoggedIn()) {
+      this.error.set('You must be logged in to rate games. Please log in first.');
+      // Remettre la valeur par défaut
+      const input = event.target as HTMLInputElement;
+      input.value = '0';
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     const rating = parseFloat(input.value);
 
@@ -92,10 +119,10 @@ export class GameLibraryComponent implements OnInit {
         this.games.update((games) =>
           games.map((game) => (game.id === gameId ? { ...game, rating } : game)),
         );
-        this.showSuccessMessage(`Note mise à jour: ${rating}/10`);
+        this.showSuccessMessage(`Rating updated: ${rating}/10`);
       },
       error: (error) => {
-        this.error.set(error.message || 'Erreur lors de la mise à jour de la note');
+        this.error.set(error.message || 'Error while updating rating');
       },
     });
   }

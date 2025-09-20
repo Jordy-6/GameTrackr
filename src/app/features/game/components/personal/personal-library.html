@@ -5,28 +5,28 @@
       <h1 class="text-3xl font-bold text-gray-900">My Personal Library</h1>
       <p class="mt-2 text-gray-600">All games you've rated or added to your collection</p>
 
-      <!-- Stats -->
-      @if (stats()) {
+      <!-- Stats - only show if user is logged in -->
+      @if (stats() && isUserLoggedIn()) {
         <div class="mt-6 grid grid-cols-2 md:grid-cols-5 gap-4">
           <div class="bg-white rounded-lg p-4 shadow-sm border">
-            <div class="text-2xl font-bold text-blue-600">{{ stats()?.total || 0 }}</div>
+            <div class="text-2xl font-bold text-blue-600">{{ stats().total || 0 }}</div>
             <div class="text-sm text-gray-600">Games in library</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
-            <div class="text-2xl font-bold text-green-600">{{ stats()?.completed || 0 }}</div>
+            <div class="text-2xl font-bold text-green-600">{{ stats().completed || 0 }}</div>
             <div class="text-sm text-gray-600">Completed</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
-            <div class="text-2xl font-bold text-orange-600">{{ stats()?.playing || 0 }}</div>
+            <div class="text-2xl font-bold text-orange-600">{{ stats().playing || 0 }}</div>
             <div class="text-sm text-gray-600">Playing</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
-            <div class="text-2xl font-bold text-pink-600">{{ stats()?.wishlist || 0 }}</div>
+            <div class="text-2xl font-bold text-pink-600">{{ stats().wishlist || 0 }}</div>
             <div class="text-sm text-gray-600">Wishlist</div>
           </div>
           <div class="bg-white rounded-lg p-4 shadow-sm border">
             <div class="text-2xl font-bold text-purple-600">
-              {{ (stats()?.averageRating || 0).toFixed(1) }}
+              {{ (stats().averageRating || 0).toFixed(1) }}
             </div>
             <div class="text-sm text-gray-600">Average rating</div>
           </div>
@@ -34,54 +34,55 @@
       }
     </div>
 
-    <!-- Filtres -->
-    <div class="mb-6 flex flex-wrap gap-2">
-      <button
-        (click)="filterByStatus('all')"
-        [class]="
-          'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
-          (selectedFilter() === 'all'
-            ? 'bg-blue-600 text-white'
-            : 'bg-white text-gray-700 hover:bg-gray-100')
-        "
-      >
-        All ({{ personalGames().length }})
-      </button>
-      <button
-        (click)="filterByStatus('wishlist')"
-        [class]="
-          'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
-          (selectedFilter() === 'wishlist'
-            ? 'bg-purple-600 text-white'
-            : 'bg-white text-gray-700 hover:bg-gray-100')
-        "
-      >
-        Wishlist ({{ wishlistGames().length }})
-      </button>
-      <button
-        (click)="filterByStatus('playing')"
-        [class]="
-          'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
-          (selectedFilter() === 'playing'
-            ? 'bg-orange-600 text-white'
-            : 'bg-white text-gray-700 hover:bg-gray-100')
-        "
-      >
-        Playing ({{ playingGames().length }})
-      </button>
-      <button
-        (click)="filterByStatus('completed')"
-        [class]="
-          'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
-          (selectedFilter() === 'completed'
-            ? 'bg-green-600 text-white'
-            : 'bg-white text-gray-700 hover:bg-gray-100')
-        "
-      >
-        Completed ({{ completedGames().length }}))
-      </button>
-    </div>
-
+    <!-- Filtres - only show if user is logged in -->
+    @if (isUserLoggedIn()) {
+      <div class="mb-6 flex flex-wrap gap-2">
+        <button
+          (click)="filterByStatus('all')"
+          [class]="
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
+            (selectedFilter() === 'all'
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100')
+          "
+        >
+          All ({{ personalGames().length }})
+        </button>
+        <button
+          (click)="filterByStatus('wishlist')"
+          [class]="
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
+            (selectedFilter() === 'wishlist'
+              ? 'bg-purple-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100')
+          "
+        >
+          Wishlist ({{ wishlistGames().length }})
+        </button>
+        <button
+          (click)="filterByStatus('playing')"
+          [class]="
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
+            (selectedFilter() === 'playing'
+              ? 'bg-orange-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100')
+          "
+        >
+          Playing ({{ playingGames().length }})
+        </button>
+        <button
+          (click)="filterByStatus('completed')"
+          [class]="
+            'px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ' +
+            (selectedFilter() === 'completed'
+              ? 'bg-green-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-100')
+          "
+        >
+          Completed ({{ completedGames().length }})
+        </button>
+      </div>
+    }
     <!-- Loading State -->
     @if (loading()) {
       <div class="flex justify-center items-center py-12">
@@ -130,8 +131,8 @@
       </div>
     }
 
-    <!-- Games Grid -->
-    @if (filteredGames().length > 0) {
+    <!-- Games Grid - only show if user is logged in -->
+    @if (filteredGames().length > 0 && isUserLoggedIn()) {
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @for (game of filteredGames(); track game.id) {
           <div
@@ -279,7 +280,7 @@
       </div>
     }
 
-    <!-- Empty State -->
+    <!-- Empty State or Login Required -->
     @if (filteredGames().length === 0 && !loading()) {
       <div class="text-center py-12">
         <svg
@@ -296,20 +297,33 @@
           ></path>
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900">
-          @if (selectedFilter() === 'all') {
+          @if (!isUserLoggedIn()) {
+            Login Required
+          } @else if (selectedFilter() === 'all') {
             Your library is empty
           } @else {
             No games with status "{{ getStatusLabel(selectedFilter()) }}"
           }
         </h3>
         <p class="mt-1 text-sm text-gray-500">
-          @if (selectedFilter() === 'all') {
+          @if (!isUserLoggedIn()) {
+            You must be logged in to view and manage your personal game library.
+          } @else if (selectedFilter() === 'all') {
             Start by rating games or adding them to your collection from the main library.
           } @else {
             Change your games' status to see them appear here.
           }
         </p>
-        @if (selectedFilter() === 'all') {
+        @if (!isUserLoggedIn()) {
+          <div class="mt-6">
+            <button
+              (click)="goToLogin()"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Login / Register
+            </button>
+          </div>
+        } @else if (selectedFilter() === 'all') {
           <div class="mt-6">
             <button
               (click)="goToMainLibrary()"
