@@ -199,4 +199,9 @@ export class AuthService {
     this.currentUser.set(null);
     localStorage.removeItem('currentUser');
   }
+
+  getToken(): string | null {
+    const user = this.currentUser();
+    return user ? `mock-token-${user.id}` : null;
+  }
 }
