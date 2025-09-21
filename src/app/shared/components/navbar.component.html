@@ -1,0 +1,169 @@
+<nav class="bg-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <!-- Logo et navigation principale -->
+      <div class="flex">
+        <!-- Logo -->
+        <div class="flex-shrink-0 flex items-center">
+          <h1 class="text-2xl font-bold text-blue-600">GameTrackr</h1>
+        </div>
+
+        <!-- Navigation links -->
+        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+          <a
+            routerLink="/games"
+            routerLinkActive="border-blue-500 text-gray-900"
+            class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+          >
+            Discover
+          </a>
+
+          @if (currentUser()) {
+            <a
+              routerLink="/games/my-library"
+              routerLinkActive="border-blue-500 text-gray-900"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+            >
+              My Library
+            </a>
+            <a
+              routerLink="/user/me"
+              routerLinkActive="border-blue-500 text-gray-900"
+              class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+            >
+              My Profile
+            </a>
+            @if (isAdmin()) {
+              <a
+                routerLink="/admin/users"
+                routerLinkActive="border-blue-500 text-gray-900"
+                class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200"
+              >
+                Admin
+              </a>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Actions utilisateur -->
+      <div class="flex items-center space-x-4">
+        @if (currentUser(); as user) {
+          <!-- Utilisateur connecté -->
+          <div class="flex items-center space-x-4">
+            <!-- Informations utilisateur -->
+            <div class="hidden md:flex items-center space-x-3">
+              <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <span class="text-white text-sm font-medium">{{ getInitials(user.name) }}</span>
+              </div>
+              <span class="text-gray-700 text-sm font-medium">{{ user.name }}</span>
+            </div>
+
+            <!-- Bouton déconnexion -->
+            <button
+              (click)="logout()"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              Déconnexion
+            </button>
+          </div>
+        } @else {
+          <!-- Utilisateur non connecté -->
+          <div class="flex items-center space-x-3">
+            <a
+              routerLink="/auth/login"
+              class="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+            >
+              Connexion
+            </a>
+            <a
+              routerLink="/auth/register"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              Inscription
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- Menu mobile -->
+      <div class="sm:hidden flex items-center">
+        <button
+          (click)="toggleMobileMenu()"
+          class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+        >
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            ></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu mobile -->
+  @if (showMobileMenu) {
+    <div class="sm:hidden">
+      <div class="pt-2 pb-3 space-y-1 bg-gray-50 border-t border-gray-200">
+        <a
+          routerLink="/games"
+          (click)="closeMobileMenu()"
+          class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 text-base font-medium transition-colors duration-200"
+        >
+          Découvrir
+        </a>
+
+        @if (currentUser()) {
+          <a
+            routerLink="/games/my-library"
+            (click)="closeMobileMenu()"
+            class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 text-base font-medium transition-colors duration-200"
+          >
+            Ma Bibliothèque
+          </a>
+          <a
+            routerLink="/user/me"
+            (click)="closeMobileMenu()"
+            class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 text-base font-medium transition-colors duration-200"
+          >
+            Mon Profil
+          </a>
+          @if (isAdmin()) {
+            <a
+              routerLink="/admin/users"
+              (click)="closeMobileMenu()"
+              class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 text-base font-medium transition-colors duration-200"
+            >
+              Administration
+            </a>
+          }
+          <button
+            (click)="logout(); closeMobileMenu()"
+            class="text-red-600 hover:text-red-900 hover:bg-red-50 block w-full text-left px-3 py-2 text-base font-medium transition-colors duration-200"
+          >
+            Déconnexion
+          </button>
+        } @else {
+          <a
+            routerLink="/auth/login"
+            (click)="closeMobileMenu()"
+            class="text-gray-600 hover:text-gray-900 hover:bg-gray-100 block px-3 py-2 text-base font-medium transition-colors duration-200"
+          >
+            Connexion
+          </a>
+          <a
+            routerLink="/auth/register"
+            (click)="closeMobileMenu()"
+            class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 block px-3 py-2 text-base font-medium transition-colors duration-200"
+          >
+            Inscription
+          </a>
+        }
+      </div>
+    </div>
+  }
+</nav>
