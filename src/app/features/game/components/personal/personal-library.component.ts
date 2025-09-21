@@ -4,11 +4,13 @@ import { Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
 import { AuthService } from '../../../auth/services/auth';
+import { TimeSincePipe } from '../../../../shared/pipes/time-since.pipe';
+import { GameStatusPipe } from '../../../../shared/pipes/game-status.pipe';
 
 @Component({
   selector: 'app-personal-library',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TimeSincePipe, GameStatusPipe],
   templateUrl: './personal-library.html',
 })
 export class PersonalLibraryComponent implements OnInit {
@@ -40,6 +42,10 @@ export class PersonalLibraryComponent implements OnInit {
     this.personalGames().filter((game) => game.status === 'wishlist'),
   );
 
+  public abandonedGames = computed(() =>
+    this.personalGames().filter((game) => game.status === 'abandoned'),
+  );
+
   public ratedGames = computed(() => this.personalGames().filter((game) => game.rating > 0));
 
   public stats = computed(() => ({
@@ -47,6 +53,7 @@ export class PersonalLibraryComponent implements OnInit {
     completed: this.completedGames().length,
     playing: this.playingGames().length,
     wishlist: this.wishlistGames().length,
+    abandoned: this.abandonedGames().length,
     rated: this.ratedGames().length,
     averageRating:
       this.ratedGames().length > 0

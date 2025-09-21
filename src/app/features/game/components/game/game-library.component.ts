@@ -3,11 +3,14 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
 import { AuthService } from '../../../auth/services/auth';
+import { TimeSincePipe } from '../../../../shared/pipes/time-since.pipe';
+import { GameStatusPipe } from '../../../../shared/pipes/game-status.pipe';
+import { HighlightDirective } from '../../../../shared/directives/highlight.directive';
 
 @Component({
   selector: 'app-game-library',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TimeSincePipe, GameStatusPipe, HighlightDirective],
   templateUrl: './game-library.html',
 })
 export class GameLibraryComponent implements OnInit {

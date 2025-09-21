@@ -84,7 +84,10 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         @for (game of games(); track game.id) {
           <div
-            class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+            appHighlight
+            highlightColor="#f8fafc"
+            defaultColor="#ffffff"
+            class="bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100"
           >
             <!-- Game Cover -->
             <div class="aspect-w-3 aspect-h-4 bg-gray-200">
@@ -118,7 +121,22 @@
               </div>
 
               <!-- Release Date -->
-              <p class="text-sm text-gray-600 mb-3">Released: {{ formatDate(game.releaseDate) }}</p>
+              <div class="text-sm text-gray-600 mb-3 space-y-1">
+                <p>Released: {{ formatDate(game.releaseDate) }}</p>
+                <p class="text-xs">{{ game.releaseDate | timeSince }}</p>
+              </div>
+
+              <!-- Current Status Display (if user has one) -->
+              @if (isUserLoggedIn() && game.status !== 'none') {
+                <div class="mb-3">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    [class]="game.status | gameStatus: 'class'"
+                  >
+                    {{ game.status | gameStatus: 'full' }}
+                  </span>
+                </div>
+              }
 
               <!-- User Status & Rating -->
               <div class="space-y-3">
@@ -149,6 +167,7 @@
                     <option value="wishlist">Wishlist</option>
                     <option value="playing">Playing</option>
                     <option value="completed">Completed</option>
+                    <option value="abandoned">Abandoned</option>
                   </select>
                 </div>
 
