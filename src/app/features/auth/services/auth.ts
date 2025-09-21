@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, effect } from '@angular/core';
 import { LoginRequest, RegisterRequest } from '../model/auth.model';
 import { UpdateUserProfileRequest, User } from '../../user/model/user.model';
 import { delay, Observable, of, throwError } from 'rxjs';
@@ -16,6 +16,16 @@ export class AuthService {
       this.currentUser.set(JSON.parse(localStorage.getItem('currentUser')!));
     }
     this.loadUsersFromLocalStorage();
+
+    // Effect pour synchroniser automatiquement currentUser avec localStorage
+    effect(() => {
+      const user = this.currentUser();
+      if (user) {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('currentUser');
+      }
+    });
   }
 
   private users: User[] = [
@@ -46,7 +56,6 @@ export class AuthService {
 
     if (user && password === credentials.password) {
       this.currentUser.set(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
       return of(user).pipe(delay(500));
     } else {
       return throwError(() => new Error('Invalid email or password'));
@@ -74,7 +83,6 @@ export class AuthService {
     this.users.push(newUser);
     this.passwords[userData.email] = userData.password;
     this.currentUser.set(newUser);
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
     this.saveUsersToLocalStorage();
     return of(newUser).pipe(delay(500));
   }
@@ -90,7 +98,7 @@ export class AuthService {
 
   public getAllUsers(): Observable<User[]> {
     if (this.currentUser()?.role === 'admin') {
-      localStorage.setItem('AllUsers', JSON.stringify(this.users));
+      localStorage.setItem('all_users', JSON.stringify(this.users));
       return of(this.users).pipe(delay(300));
     }
     return throwError(() => new Error('Unauthorized'));
@@ -105,12 +113,21 @@ export class AuthService {
   }
 
   public deleteUserAccount(userId: number): Observable<void> {
-    if (this.currentUser()?.id === userId || this.currentUser()?.role === 'admin') {
-      this.users = this.users.filter((u) => u.id !== userId);
-      this.saveUsersToLocalStorage();
-      return of(void 0).pipe(delay(300));
+    if (this.currentUser()?.role !== 'admin') {
+      return throwError(() => new Error('Unauthorized: Admin access required'));
     }
-    return throwError(() => new Error('Unauthorized'));
+
+    const userIndex = this.users.findIndex((u) => u.id === userId);
+    if (userIndex === -1) {
+      return throwError(() => new Error('User not found'));
+    }
+
+    const email = this.users[userIndex].email;
+    this.users.splice(userIndex, 1);
+    delete this.passwords[email];
+
+    this.saveUsersToLocalStorage();
+    return of(void 0).pipe(delay(300));
   }
 
   public updateUserProfile(
@@ -121,7 +138,6 @@ export class AuthService {
       const userIndex = this.users.findIndex((u) => u.id === userId);
       if (userIndex !== -1) {
         this.users[userIndex] = { ...this.users[userIndex], ...updatedData };
-        localStorage.setItem('currentUser', JSON.stringify(this.users[userIndex]));
         this.currentUser.set(this.users[userIndex]);
         this.saveUsersToLocalStorage();
         return of(this.users[userIndex]).pipe(delay(300));
@@ -129,6 +145,40 @@ export class AuthService {
     }
 
     return throwError(() => new Error('Unauthorized'));
+  }
+
+  /**
+   * Mettre à jour un utilisateur en tant qu'admin (permet de modifier le rôle)
+   */
+  public updateUserAsAdmin(userId: number, updatedData: Partial<User>): Observable<User> {
+    if (this.currentUser()?.role !== 'admin') {
+      return throwError(() => new Error('Unauthorized: Admin access required'));
+    }
+
+    const userIndex = this.users.findIndex((u) => u.id === userId);
+    if (userIndex === -1) {
+      return throwError(() => new Error('User not found'));
+    }
+
+    const currentUser = this.users[userIndex];
+    const updatedUser = { ...currentUser, ...updatedData };
+
+    // Si l'email a changé, mettre à jour les mots de passe
+    if (updatedData.email && updatedData.email !== currentUser.email) {
+      const password = this.passwords[currentUser.email];
+      delete this.passwords[currentUser.email];
+      this.passwords[updatedData.email] = password;
+    }
+
+    this.users[userIndex] = updatedUser;
+
+    // Si on modifie l'utilisateur actuel, mettre à jour le signal
+    if (this.currentUser()?.id === userId) {
+      this.currentUser.set(updatedUser);
+    }
+
+    this.saveUsersToLocalStorage();
+    return of(updatedUser).pipe(delay(300));
   }
 
   private saveUsersToLocalStorage(): void {
