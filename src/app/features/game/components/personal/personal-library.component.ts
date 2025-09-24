@@ -18,7 +18,6 @@ export class PersonalLibraryComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  // Signals
   personalGames = signal<Game[]>([]);
   filteredGames = signal<Game[]>([]);
   selectedFilter = signal<string>('all');
@@ -26,7 +25,6 @@ export class PersonalLibraryComponent implements OnInit {
   error = signal<string>('');
   successMessage = signal<string>('');
   expandedDescriptions = signal<Set<number>>(new Set());
-  // Signal pour les notes temporaires (pendant le déplacement du slider)
   tempRatings = signal<Map<number, number>>(new Map());
 
   // Computed signals pour les statistiques
@@ -62,7 +60,6 @@ export class PersonalLibraryComponent implements OnInit {
   }));
 
   ngOnInit() {
-    // Vérifier si l'utilisateur est connecté avant de charger la bibliothèque
     if (!this.isUserLoggedIn()) {
       this.error.set('You must be logged in to view your personal library. Please log in first.');
       this.loading.set(false);
@@ -71,16 +68,10 @@ export class PersonalLibraryComponent implements OnInit {
     this.loadPersonalLibrary();
   }
 
-  /**
-   * Vérifier si l'utilisateur est connecté
-   */
   isUserLoggedIn(): boolean {
     return this.authService.getCurrentUser() !== null;
   }
 
-  /**
-   * Obtenir la note à afficher (temporaire ou réelle)
-   */
   getDisplayRating(gameId: number): number {
     const tempRating = this.tempRatings().get(gameId);
     if (tempRating !== undefined) {
@@ -90,14 +81,11 @@ export class PersonalLibraryComponent implements OnInit {
     return game ? game.rating : 0;
   }
 
-  /**
-   * Gérer le déplacement du slider (mise à jour temporaire)
-   */
   onRatingSliderMove(gameId: number, event: Event) {
     const input = event.target as HTMLInputElement;
     const rating = parseFloat(input.value);
 
-    // Mettre à jour la note temporaire
+    // Update the temporary rating
     this.tempRatings.update((map) => {
       const newMap = new Map(map);
       newMap.set(gameId, rating);
@@ -105,16 +93,13 @@ export class PersonalLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Charger la bibliothèque personnelle (jeux avec interaction utilisateur)
-   */
   loadPersonalLibrary() {
     this.loading.set(true);
     this.error.set('');
 
     this.gameService.getAllPersonalGames().subscribe({
       next: (games) => {
-        // Filtrer pour ne garder que les jeux avec lesquels l'utilisateur a interagi
+        // Filter to keep only games the user has interacted with
         const interactedGames = games.filter((game) => game.status !== 'none' || game.rating > 0);
         this.personalGames.set(interactedGames);
         this.applyFilter();
@@ -127,17 +112,11 @@ export class PersonalLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Filtrer par statut
-   */
   filterByStatus(status: string) {
     this.selectedFilter.set(status);
     this.applyFilter();
   }
 
-  /**
-   * Appliquer le filtre sélectionné
-   */
   applyFilter() {
     const filter = this.selectedFilter();
     const games = this.personalGames();
@@ -149,9 +128,6 @@ export class PersonalLibraryComponent implements OnInit {
     }
   }
 
-  /**
-   * Mettre à jour le statut d'un jeu
-   */
   updateGameStatus(gameId: number, event: Event) {
     const select = event.target as HTMLSelectElement;
     const status = select.value as 'none' | 'wishlist' | 'playing' | 'completed';
@@ -167,11 +143,11 @@ export class PersonalLibraryComponent implements OnInit {
     this.gameService.updateUserGameData(updateData, gameId).subscribe({
       next: () => {
         if (status === 'none') {
-          // Retirer de la bibliothèque personnelle
+          // Remove from personal library
           this.personalGames.update((games) => games.filter((g) => g.id !== gameId));
           this.showSuccessMessage('Game removed from your library');
         } else {
-          // Mettre à jour le statut
+          // Update status
           this.personalGames.update((games) =>
             games.map((game) => (game.id === gameId ? { ...game, status } : game)),
           );
@@ -185,9 +161,6 @@ export class PersonalLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Mettre à jour la note d'un jeu
-   */
   updateGameRating(gameId: number, event: Event) {
     const input = event.target as HTMLInputElement;
     const rating = parseFloat(input.value);
@@ -202,11 +175,11 @@ export class PersonalLibraryComponent implements OnInit {
 
     this.gameService.updateUserGameData(updateData, gameId).subscribe({
       next: () => {
-        // Mettre à jour localement
+        // Update locally
         this.personalGames.update((games) =>
           games.map((game) => (game.id === gameId ? { ...game, rating } : game)),
         );
-        // Nettoyer la note temporaire
+        // Clear temporary rating
         this.tempRatings.update((map) => {
           const newMap = new Map(map);
           newMap.delete(gameId);
@@ -216,7 +189,6 @@ export class PersonalLibraryComponent implements OnInit {
       },
       error: (error) => {
         this.error.set(error.message || 'Erreur lors de la mise à jour de la note');
-        // En cas d'erreur, nettoyer aussi la note temporaire
         this.tempRatings.update((map) => {
           const newMap = new Map(map);
           newMap.delete(gameId);
@@ -226,9 +198,6 @@ export class PersonalLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Obtenir le label du statut
-   */
   getStatusLabel(status: string): string {
     const labels: Record<string, string> = {
       wishlist: 'Wishlist',
@@ -240,9 +209,6 @@ export class PersonalLibraryComponent implements OnInit {
     return labels[status] || status;
   }
 
-  /**
-   * Obtenir la couleur du badge de statut
-   */
   getStatusBadgeColor(status: string): string {
     const colors: Record<string, string> = {
       wishlist: 'bg-purple-100 text-purple-800',
@@ -253,9 +219,6 @@ export class PersonalLibraryComponent implements OnInit {
     return colors[status] || 'bg-gray-100 text-gray-800';
   }
 
-  /**
-   * Obtenir la couleur de la bordure selon le statut
-   */
   getStatusBorderColor(status: string): string {
     const colors: Record<string, string> = {
       wishlist: 'border-l-purple-500',
@@ -266,9 +229,6 @@ export class PersonalLibraryComponent implements OnInit {
     return colors[status] || 'border-l-gray-300';
   }
 
-  /**
-   * Afficher/masquer la description d'un jeu
-   */
   toggleDescription(gameId: number) {
     this.expandedDescriptions.update((expanded) => {
       const newSet = new Set(expanded);
@@ -281,31 +241,19 @@ export class PersonalLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Aller à la bibliothèque principale
-   */
   goToMainLibrary() {
     this.router.navigate(['/games']);
   }
 
-  /**
-   * Aller à la page de connexion
-   */
   goToLogin() {
     this.router.navigate(['/auth/login']);
   }
 
-  /**
-   * Gérer l'erreur de chargement d'image
-   */
   onImageError(event: Event) {
     const img = event.target as HTMLImageElement;
     img.src = 'https://placehold.co/600x400/e5e7eb/9ca3af?text=No+Image';
   }
 
-  /**
-   * Afficher un message de succès temporaire
-   */
   private showSuccessMessage(message: string) {
     this.successMessage.set(message);
     setTimeout(() => this.successMessage.set(''), 3000);

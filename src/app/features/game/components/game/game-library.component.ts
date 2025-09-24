@@ -48,7 +48,6 @@ export class GameLibraryComponent implements OnInit {
   }
 
   updateGameStatus(gameId: number, event: Event) {
-    // Vérifier si l'utilisateur est connecté
     if (!this.isUserLoggedIn()) {
       this.error.set('You must be logged in to update game status. Please log in first.');
       const select = event.target as HTMLSelectElement;
