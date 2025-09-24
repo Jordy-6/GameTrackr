@@ -17,6 +17,8 @@ export class UserProfileComponent {
   private fb = inject(FormBuilder);
   public router = inject(Router);
 
+  public currentUser = this.authService.user$;
+
   isEditMode = signal(false);
   loading = signal(false);
   error = signal<string>('');
