@@ -2,6 +2,7 @@ import { Injectable, signal, effect } from '@angular/core';
 import { LoginRequest, RegisterRequest } from '../model/auth.model';
 import { UpdateUserProfileRequest, User } from '../../user/model/user.model';
 import { delay, Observable, of, throwError } from 'rxjs';
+import { UserGameData } from '../../game/model/game.model';
 
 @Injectable({
   providedIn: 'root',
@@ -120,8 +121,27 @@ export class AuthService {
     this.users.splice(userIndex, 1);
     delete this.passwords[email];
 
+    this.deleteUserGameDataFromStorage(userId);
+
+    if (this.currentUser()?.id === userId) {
+      this.currentUser.set(null);
+    }
+
     this.saveUsersToLocalStorage();
     return of(void 0).pipe(delay(300));
+  }
+
+  private deleteUserGameDataFromStorage(userId: number): void {
+    try {
+      const savedData = localStorage.getItem('userGameData');
+      if (savedData) {
+        const currentData = JSON.parse(savedData);
+        const filteredData = currentData.filter((item: UserGameData) => item.userId !== userId);
+        localStorage.setItem('userGameData', JSON.stringify(filteredData));
+      }
+    } catch (error) {
+      console.error("Erreur lors de la suppression des données de jeu de l'utilisateur:", error);
+    }
   }
 
   public updateUserProfile(
