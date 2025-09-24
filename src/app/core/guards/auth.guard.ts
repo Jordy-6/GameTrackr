@@ -7,18 +7,16 @@ import { toObservable } from '@angular/core/rxjs-interop';
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  // Convert the signal to an observable before using pipe
-  return toObservable(authService.getCurrentUserSignal()).pipe(
-    take(1), // Prendre seulement la première valeur
+  return toObservable(authService.user$).pipe(
+    take(1),
     map((user) => {
       if (user) {
-        return true; // Accès autorisé
+        return true;
       } else {
-        // Rediriger vers login avec l'URL de retour
         router.navigate(['/auth/login'], {
           queryParams: { returnUrl: state.url },
         });
-        return false; // Accès refusé
+        return false;
       }
     }),
   );

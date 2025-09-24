@@ -14,7 +14,7 @@ export class NavbarComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  currentUser = this.authService.getCurrentUserSignal();
+  currentUser = this.authService.user$;
   showMobileMenu = false;
 
   /**

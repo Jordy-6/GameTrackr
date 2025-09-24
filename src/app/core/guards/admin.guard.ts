@@ -8,7 +8,7 @@ export const AdminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const currentUser = authService.getCurrentUserSignal();
+  const currentUser = authService.user$;
 
   return toObservable(currentUser).pipe(
     map((user) => {

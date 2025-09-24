@@ -17,14 +17,12 @@ export class UserProfileComponent {
   private fb = inject(FormBuilder);
   public router = inject(Router);
 
-  // Signals - currentUser pointe directement vers le signal du AuthService
-  currentUser = this.authService.getCurrentUserSignal();
+  currentUser = this.authService.user$;
   isEditMode = signal(false);
   loading = signal(false);
   error = signal<string>('');
   success = signal<string>('');
 
-  // Formulaire d'édition
   editForm: FormGroup;
 
   constructor() {
@@ -34,7 +32,6 @@ export class UserProfileComponent {
       password: ['', [Validators.minLength(6)]],
     });
 
-    // Initialiser le formulaire avec les données de l'utilisateur
     const user = this.currentUser();
     if (user) {
       this.editForm.patchValue({
@@ -129,7 +126,6 @@ export class UserProfileComponent {
     this.router.navigate(['/auth/login']);
   }
 
-  // Helper methods
   isFieldInvalid(fieldName: string): boolean {
     const field = this.editForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
