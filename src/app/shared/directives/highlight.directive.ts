@@ -7,16 +7,16 @@ import { Directive, ElementRef, HostListener, Input, OnInit, inject } from '@ang
 export class HighlightDirective implements OnInit {
   private elementRef = inject(ElementRef);
 
-  @Input() highlightColor = '#e3f2fd'; // Bleu clair par défaut
-  @Input() defaultColor = 'transparent'; // Transparent par défaut
-  @Input() highlightText = '#1976d2'; // Couleur du texte au survol
+  @Input() highlightColor = '#e3f2fd'; // Blue background by default
+  @Input() defaultColor = 'transparent'; // Transparent by default
+  @Input() highlightText = '#1976d2'; // Text color on hover
 
   private originalTextColor = '';
 
   ngOnInit(): void {
-    // Sauvegarder la couleur de texte originale
+    // Save the original text color
     this.originalTextColor = this.elementRef.nativeElement.style.color || '';
-    // Appliquer la couleur de fond par défaut
+    // Apply the default background color
     this.setBackgroundColor(this.defaultColor);
   }
 

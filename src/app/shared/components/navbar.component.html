@@ -66,7 +66,9 @@
             <!-- Informations utilisateur -->
             <div class="hidden md:flex items-center space-x-3">
               <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span class="text-white text-sm font-medium">{{ getInitials(user.name) }}</span>
+                <span class="text-white text-sm font-medium">{{
+                  getUserFirstNameInitials(user.name)
+                }}</span>
               </div>
               <span class="text-gray-700 text-sm font-medium">{{ user.name }}</span>
             </div>

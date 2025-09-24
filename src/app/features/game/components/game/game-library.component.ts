@@ -17,7 +17,6 @@ export class GameLibraryComponent implements OnInit {
   private gameService = inject(GameService);
   private authService = inject(AuthService);
 
-  // Signals
   games = signal<Game[]>([]);
   loading = signal(false);
   error = signal<string>('');
@@ -28,9 +27,6 @@ export class GameLibraryComponent implements OnInit {
     this.loadGames();
   }
 
-  /**
-   * Charger tous les jeux avec les données personnalisées
-   */
   loadGames() {
     this.loading.set(true);
     this.error.set('');
@@ -47,21 +43,14 @@ export class GameLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Vérifier si l'utilisateur est connecté
-   */
   isUserLoggedIn(): boolean {
     return this.authService.getCurrentUser() !== null;
   }
 
-  /**
-   * Mettre à jour le statut d'un jeu
-   */
   updateGameStatus(gameId: number, event: Event) {
     // Vérifier si l'utilisateur est connecté
     if (!this.isUserLoggedIn()) {
       this.error.set('You must be logged in to update game status. Please log in first.');
-      // Remettre la valeur par défaut
       const select = event.target as HTMLSelectElement;
       select.value = 'none';
       return;
@@ -80,8 +69,8 @@ export class GameLibraryComponent implements OnInit {
 
     this.gameService.updateUserGameData(updateData, gameId).subscribe({
       next: () => {
-        // Mettre à jour localement
         this.games.update((games) =>
+          // We update locally the game status
           games.map((game) => (game.id === gameId ? { ...game, status } : game)),
         );
         this.showSuccessMessage('Status updated successfully!');
@@ -92,14 +81,9 @@ export class GameLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Mettre à jour la note d'un jeu
-   */
   updateGameRating(gameId: number, event: Event) {
-    // Vérifier si l'utilisateur est connecté
     if (!this.isUserLoggedIn()) {
       this.error.set('You must be logged in to rate games. Please log in first.');
-      // Remettre la valeur par défaut
       const input = event.target as HTMLInputElement;
       input.value = '0';
       return;
@@ -118,7 +102,7 @@ export class GameLibraryComponent implements OnInit {
 
     this.gameService.updateUserGameData(updateData, gameId).subscribe({
       next: () => {
-        // Mettre à jour localement
+        // Update locally the game rating
         this.games.update((games) =>
           games.map((game) => (game.id === gameId ? { ...game, rating } : game)),
         );
@@ -130,9 +114,6 @@ export class GameLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Afficher/masquer la description d'un jeu
-   */
   toggleDescription(gameId: number) {
     this.expandedDescriptions.update((expanded) => {
       const newSet = new Set(expanded);
@@ -145,17 +126,11 @@ export class GameLibraryComponent implements OnInit {
     });
   }
 
-  /**
-   * Gérer l'erreur de chargement d'image
-   */
   onImageError(event: Event) {
     const img = event.target as HTMLImageElement;
     img.src = 'https://via.placeholder.com/300x400/e5e7eb/9ca3af?text=No+Image';
   }
 
-  /**
-   * Formater la date de sortie
-   */
   formatDate(date: Date): string {
     return new Intl.DateTimeFormat('fr-FR', {
       year: 'numeric',
@@ -164,9 +139,6 @@ export class GameLibraryComponent implements OnInit {
     }).format(new Date(date));
   }
 
-  /**
-   * Afficher un message de succès temporaire
-   */
   private showSuccessMessage(message: string) {
     this.successMessage.set(message);
     setTimeout(() => this.successMessage.set(''), 6000);

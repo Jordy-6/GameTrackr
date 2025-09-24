@@ -11,13 +11,13 @@ export class AuthService {
   public user$ = this.currentUser.asReadonly();
 
   constructor() {
-    // Initialiser le signal avec les données du localStorage si elles existent
+    // Initialise users from localStorage
     if (localStorage.getItem('currentUser')) {
       this.currentUser.set(JSON.parse(localStorage.getItem('currentUser')!));
     }
     this.loadUsersFromLocalStorage();
 
-    // Effect pour synchroniser automatiquement currentUser avec localStorage
+    // Effect to synchronize currentUser with localStorage
     effect(() => {
       const user = this.currentUser();
       if (user) {
@@ -91,14 +91,8 @@ export class AuthService {
     return this.currentUser();
   }
 
-  // Nouvelle méthode pour accéder au signal directement
-  public getCurrentUserSignal() {
-    return this.currentUser;
-  }
-
   public getAllUsers(): Observable<User[]> {
     if (this.currentUser()?.role === 'admin') {
-      localStorage.setItem('all_users', JSON.stringify(this.users));
       return of(this.users).pipe(delay(300));
     }
     return throwError(() => new Error('Unauthorized'));
@@ -113,8 +107,8 @@ export class AuthService {
   }
 
   public deleteUserAccount(userId: number): Observable<void> {
-    if (this.currentUser()?.role !== 'admin') {
-      return throwError(() => new Error('Unauthorized: Admin access required'));
+    if (this.currentUser()?.id !== userId && this.currentUser()?.role !== 'admin') {
+      return throwError(() => new Error('Unauthorized'));
     }
 
     const userIndex = this.users.findIndex((u) => u.id === userId);
@@ -147,9 +141,6 @@ export class AuthService {
     return throwError(() => new Error('Unauthorized'));
   }
 
-  /**
-   * Mettre à jour un utilisateur en tant qu'admin (permet de modifier le rôle)
-   */
   public updateUserAsAdmin(userId: number, updatedData: Partial<User>): Observable<User> {
     if (this.currentUser()?.role !== 'admin') {
       return throwError(() => new Error('Unauthorized: Admin access required'));
@@ -163,7 +154,7 @@ export class AuthService {
     const currentUser = this.users[userIndex];
     const updatedUser = { ...currentUser, ...updatedData };
 
-    // Si l'email a changé, mettre à jour les mots de passe
+    // If the email has changed, update the passwords
     if (updatedData.email && updatedData.email !== currentUser.email) {
       const password = this.passwords[currentUser.email];
       delete this.passwords[currentUser.email];
@@ -172,7 +163,7 @@ export class AuthService {
 
     this.users[userIndex] = updatedUser;
 
-    // Si on modifie l'utilisateur actuel, mettre à jour le signal
+    // If we are modifying the current user, update the signal
     if (this.currentUser()?.id === userId) {
       this.currentUser.set(updatedUser);
     }

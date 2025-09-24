@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../services/user';
+import { UserService } from '../services/user.service';
 import { AuthService } from '../../auth/services/auth.service';
 
 @Component({
@@ -17,7 +17,6 @@ export class UserProfileComponent {
   private fb = inject(FormBuilder);
   public router = inject(Router);
 
-  currentUser = this.authService.user$;
   isEditMode = signal(false);
   loading = signal(false);
   error = signal<string>('');
@@ -32,7 +31,7 @@ export class UserProfileComponent {
       password: ['', [Validators.minLength(6)]],
     });
 
-    const user = this.currentUser();
+    const user = this.userService.getUserProfile();
     if (user) {
       this.editForm.patchValue({
         name: user.name,
@@ -47,8 +46,7 @@ export class UserProfileComponent {
     this.clearMessages();
 
     if (this.isEditMode()) {
-      // Réinitialiser le formulaire avec les données actuelles
-      const user = this.currentUser();
+      const user = this.userService.getUserProfile();
       if (user) {
         this.editForm.patchValue({
           name: user.name,
@@ -88,8 +86,7 @@ export class UserProfileComponent {
     this.isEditMode.set(false);
     this.clearMessages();
 
-    // Réinitialiser le formulaire
-    const user = this.currentUser();
+    const user = this.userService.getUserProfile();
     if (user) {
       this.editForm.patchValue({
         name: user.name,
@@ -111,7 +108,7 @@ export class UserProfileComponent {
         next: () => {
           this.loading.set(false);
           alert('Account deleted successfully. You will be redirected to the home page.');
-          this.router.navigate(['/']);
+          this.router.navigate(['/auth/register']);
         },
         error: (error) => {
           this.loading.set(false);
@@ -143,6 +140,7 @@ export class UserProfileComponent {
     return '';
   }
 
+  // Force all form fields to be touched to show validation errors
   private markFormGroupTouched() {
     Object.keys(this.editForm.controls).forEach((key) => {
       this.editForm.get(key)?.markAsTouched();
@@ -154,12 +152,8 @@ export class UserProfileComponent {
     this.success.set('');
   }
 
-  getRoleBadgeClass(role: string): string {
-    return role === 'admin' ? 'badge-admin' : 'badge-user';
-  }
-
   formatDate(date: Date): string {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
