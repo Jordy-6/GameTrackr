@@ -59,7 +59,7 @@ export class RegisterComponent {
         next: (user) => {
           this.loading.set(false);
           console.log('Registered user:', user);
-          this.router.navigate(['/todos']);
+          this.router.navigate(['/']);
         },
         error: (err) => {
           this.loading.set(false);
