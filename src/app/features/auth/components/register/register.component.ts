@@ -56,9 +56,8 @@ export class RegisterComponent {
       const { ...userData } = this.registerForm.value;
 
       this.authService.register(userData).subscribe({
-        next: (user) => {
+        next: () => {
           this.loading.set(false);
-          console.log('Registered user:', user);
           this.router.navigate(['/']);
         },
         error: (err) => {
