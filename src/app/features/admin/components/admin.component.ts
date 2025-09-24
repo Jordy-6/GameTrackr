@@ -16,7 +16,6 @@ export class AdminComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
 
-  // Signals
   users = signal<User[]>([]);
   loading = signal(false);
   error = signal<string>('');
@@ -24,7 +23,6 @@ export class AdminComponent implements OnInit {
   editingUser = signal<User | null>(null);
   showDeleteConfirm = signal<User | null>(null);
 
-  // Form for editing user
   editForm: FormGroup;
 
   constructor() {
@@ -39,9 +37,6 @@ export class AdminComponent implements OnInit {
     this.loadUsers();
   }
 
-  /**
-   * Charger tous les utilisateurs
-   */
   loadUsers() {
     this.loading.set(true);
     this.error.set('');
@@ -58,9 +53,6 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  /**
-   * Commencer l'édition d'un utilisateur
-   */
   startEditing(user: User) {
     this.editingUser.set(user);
     this.editForm.patchValue({
@@ -71,18 +63,12 @@ export class AdminComponent implements OnInit {
     this.clearMessages();
   }
 
-  /**
-   * Annuler l'édition
-   */
   cancelEditing() {
     this.editingUser.set(null);
     this.editForm.reset();
     this.clearMessages();
   }
 
-  /**
-   * Sauvegarder les modifications d'un utilisateur
-   */
   saveUser() {
     if (!this.editForm.valid) {
       return;
@@ -95,9 +81,8 @@ export class AdminComponent implements OnInit {
     this.clearMessages();
 
     const formData = this.editForm.value;
-    this.authService.updateUserProfile(editingUser.id, formData).subscribe({
+    this.authService.updateUserAsAdmin(editingUser.id, formData).subscribe({
       next: (updatedUser) => {
-        // Mettre à jour la liste des utilisateurs
         this.users.update((users) =>
           users.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
         );
