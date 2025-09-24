@@ -8,13 +8,13 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './login.html',
+  templateUrl: './login.component.html',
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
@@ -38,11 +38,9 @@ export class LoginComponent {
       this.error.set('');
 
       this.authService.login(this.loginForm.value).subscribe({
-        next: (user) => {
+        next: () => {
           this.loading.set(false);
           this.router.navigate(['/']);
-          console.log('Logged in user:', user);
-          // this.authService.setCurrentUser(user);
         },
         error: (err) => {
           this.loading.set(false);

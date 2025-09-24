@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -25,7 +25,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   selector: 'app-register',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './register.html',
+  templateUrl: './register.component.html',
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);

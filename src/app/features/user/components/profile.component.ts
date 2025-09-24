@@ -3,13 +3,13 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user';
-import { AuthService } from '../../auth/services/auth';
+import { AuthService } from '../../auth/services/auth.service';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './profile.html',
+  templateUrl: './profile.component.html',
 })
 export class UserProfileComponent {
   private userService = inject(UserService);

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { UserProfileComponent } from './components/profile';
+import { UserProfileComponent } from './components/profile.component';
 export const USER_ROUTES: Routes = [
   {
     path: 'me',

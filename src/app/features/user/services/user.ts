@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { AuthService } from '../../auth/services/auth';
+import { AuthService } from '../../auth/services/auth.service';
 import { throwError } from 'rxjs';
 import { UpdateUserProfileRequest } from '../model/user.model';
 

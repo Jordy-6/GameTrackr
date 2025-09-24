@@ -3,7 +3,7 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
-import { AuthService } from '../../../auth/services/auth';
+import { AuthService } from '../../../auth/services/auth.service';
 import { TimeSincePipe } from '../../../../shared/pipes/time-since.pipe';
 import { GameStatusPipe } from '../../../../shared/pipes/game-status.pipe';
 

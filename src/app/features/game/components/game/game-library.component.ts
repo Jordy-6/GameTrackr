@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { GameService } from '../../services/game.service';
 import { Game, UpdateUserGameData } from '../../model/game.model';
-import { AuthService } from '../../../auth/services/auth';
+import { AuthService } from '../../../auth/services/auth.service';
 import { TimeSincePipe } from '../../../../shared/pipes/time-since.pipe';
 import { GameStatusPipe } from '../../../../shared/pipes/game-status.pipe';
 import { HighlightDirective } from '../../../../shared/directives/highlight.directive';

@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthService } from './auth';
-import { LoginRequest, RegisterRequest } from '../model/user.model';
+import { AuthService } from './auth.service';
+import { LoginRequest, RegisterRequest } from '../model/auth.model';
 import { firstValueFrom } from 'rxjs';
 
 describe('AuthService', () => {
@@ -12,7 +12,8 @@ describe('AuthService', () => {
   });
 
   afterEach(() => {
-    service.logout(); // Reset user state after each test
+    service.logout();
+    localStorage.clear();
   });
 
   it('should be created', () => {
@@ -111,7 +112,7 @@ describe('AuthService', () => {
       expect(user.name).toBe('Test User');
       expect(user.email).toBe('test@example.com');
       expect(user.role).toBe('user');
-      expect(user.id).toBe(3); // Should be the 3rd user
+      expect(user.id).toBe(3);
       expect(user.createdAt).toBeInstanceOf(Date);
     });
 

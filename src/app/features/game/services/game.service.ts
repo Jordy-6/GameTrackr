@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { Game, UpdateUserGameData, UserGameData } from '../model/game.model';
-import { AuthService } from '../../auth/services/auth';
+import { AuthService } from '../../auth/services/auth.service';
 
 // Interface pour les données personnalisées de l'utilisateur
 
