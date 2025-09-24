@@ -12,7 +12,6 @@ import { AuthService } from '../../auth/services/auth.service';
 export class GameService {
   private authService = inject(AuthService);
 
-  // Bibliothèque de jeux fixe (ne change jamais)
   private readonly gameLibrary: Game[] = [
     {
       id: 1,
@@ -76,29 +75,26 @@ export class GameService {
     },
   ];
 
-  // Données personnalisées par utilisateur (stockées par userId puis gameId)
+  // Personalized data per user (we store userId and gameId)
   private userGameData = signal<UserGameData[]>([]);
 
   constructor() {
     this.loadUserGameDataFromStorage();
   }
 
-  /**
-   * Charger les données utilisateur depuis localStorage
-   */
   private loadUserGameDataFromStorage(): void {
     try {
       const savedData = localStorage.getItem('userGameData');
       if (savedData) {
         const parsedData = JSON.parse(savedData);
-        // Convertir les dates string en objets Date
+        // Convert dates string in objects Date
         const dataWithDates = parsedData.map((item: UserGameData) => ({
           ...item,
           updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
         }));
         this.userGameData.set(dataWithDates);
       } else {
-        // Données d'exemple si aucune donnée sauvegardée
+        // Initial mock data if none in localStorage
         this.userGameData.set([
           {
             userId: 1,
@@ -132,25 +128,22 @@ export class GameService {
         this.saveUserGameDataToStorage();
       }
     } catch (error) {
-      console.error('Erreur lors du chargement des données depuis localStorage:', error);
+      console.error('Error loading user game data from storage:', error);
     }
   }
 
-  /**
-   * Sauvegarder les données utilisateur dans localStorage
-   */
   private saveUserGameDataToStorage(): void {
     try {
       localStorage.setItem('userGameData', JSON.stringify(this.userGameData()));
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde dans localStorage:', error);
+      console.error('Error saving user game data to storage:', error);
     }
   }
 
   getAllPersonalGames(): Observable<Game[]> {
     const currentUser = this.authService.getCurrentUser();
 
-    // Si l'utilisateur n'est pas connecté, retourner les jeux sans données personnalisées
+    // If no user is logged in, return games without user-specific data
     if (!currentUser) {
       const gamesWithoutUserData = this.gameLibrary.map((game) => ({
         ...game,
@@ -161,7 +154,10 @@ export class GameService {
       return of(gamesWithoutUserData).pipe(delay(300));
     }
 
+    // get all user game data for the current user
     const userGames = this.userGameData().filter((data) => data.userId === currentUser.id);
+
+    // Merge game library with user-specific data
     const gamesWithUserData = this.gameLibrary.map((game) => {
       const userGame = userGames.find((ug) => ug.gameId === game.id);
       return {
@@ -181,7 +177,7 @@ export class GameService {
       return throwError(() => new Error('User must be logged in'));
     }
 
-    // Si le statut est "none", supprimer le jeu de la bibliothèque
+    // If status is 'none', we remove the entry
     if (updatedData.status === 'none') {
       this.userGameData.update((current) =>
         current.filter(
@@ -194,7 +190,7 @@ export class GameService {
       );
 
       if (existingData) {
-        // Mettre à jour les données existantes
+        // Update existing data
         this.userGameData.update((current) =>
           current.map((data: UserGameData) =>
             data.userId === currentUser.id && data.gameId === gameId
@@ -203,7 +199,7 @@ export class GameService {
           ),
         );
       } else {
-        // Ajouter de nouvelles données
+        // Add new entry
         this.userGameData.update((current) => [
           ...current,
           {
@@ -217,7 +213,6 @@ export class GameService {
       }
     }
 
-    // Sauvegarder dans localStorage
     this.saveUserGameDataToStorage();
 
     return of(void 0).pipe(delay(200));
